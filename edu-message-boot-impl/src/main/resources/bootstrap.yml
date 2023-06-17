@@ -1,0 +1,94 @@
+server:
+  port: 7080
+
+spring:
+  application:
+    name: edu-message-boot
+  cloud:
+    config:
+      discovery:
+        enabled: true
+        service-id: edu-config-boot
+      profile: @profile@
+      name: ${spring.application.name}
+  datasource:
+    driver-class-name: com.mysql.jdbc.Driver
+    username: root
+    password: root
+    url: jdbc:mysql://localhost:3306/lagou_message?useUnicode=true&useSSL=false&characterEncoding=utf8&serverTimezone=Asia/Shanghai
+  klock:
+    address: redis://127.0.0.1:6379
+  rabbitmq:
+    host: 127.0.0.1
+    port: 5672
+    username: edu
+    password: edu
+    virtual-host: /edu
+  redis:
+    host: 127.0.0.1
+    port: 6379
+    timeout: 20000
+    pool:
+      max-active: 8
+      min-idle: 0
+      max-idle: 8
+      max-wait: -1
+    password:
+  security:
+    oauth2:
+      jwt:
+        signingKey: 123456
+  thymeleaf:
+    #清除缓存
+    cache: false
+    mode: LEGACYHTML5 #非严格模式
+    prefix: classpath:/templates/
+    suffix: .html
+    servlet:
+      content-type: text/html
+  main:
+    allow-bean-definition-overriding: true
+
+
+#注册到Eureka服务中心
+eureka:
+  client:
+    service-url:
+      # 注册到集群，就把多个Eurekaserver地址使用逗号连接起来即可；注册到单实例（非集群模式），那就写一个就ok
+      defaultZone: @eureka.host@
+    #eureka client刷新本地缓存时间 默认30s
+    registry-fetch-interval-seconds: 5
+  instance:
+    prefer-ip-address: true  #服务实例中显示ip，而不是显示主机名（兼容老的eureka版本）
+    # 实例名称： 192.168.1.103:lagou-service-resume:8080，我们可以自定义它
+    instance-id: ${spring.cloud.client.ip-address}:${spring.application.name}:${server.port}
+    #服务过期时间配置,超过这个时间没有接收到心跳EurekaServer就会将这个实例剔除 默认90s
+    lease-expiration-duration-in-seconds: 9
+    #服务刷新时间配置，每隔这个时间会主动心跳一次 默认30s
+    lease-renewal-interval-in-seconds: 3
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"
+  endpoint:
+    #启用shutdown端点，以便支持优雅停机
+    shutdown:
+      enabled: true
+
+#分布式链路追踪--调整SpringBoot日志输出级别
+logging:
+  config: classpath:logback.xml
+
+rocketmq:
+  name-server: 127.0.0.1:9876
+  producer:
+    group: edu_group
+  consumer:
+    group: edu_group
+
+webSocket:
+  origin: http://localhost
+  context: /push
+  port: 8899
